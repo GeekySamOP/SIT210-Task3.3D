@@ -3,6 +3,7 @@
 #include "arduino_secrets.h"
 #define echoPin A0
 #define trigPin A1
+#define led A5
 
 long duration;
 int distance;
@@ -17,8 +18,7 @@ MqttClient mqttClient(wifiClient);
 const char broker[] = "broker.hivemq.com";
 int        port     = 1883;
 const char topic[]  = "SIT210/Wave";
-//const char topic2[]  = "SIT210/Wave_2";
-//const char topic3[]  = "SIT210/Wave_3";
+
 
 //set interval for sending messages (milliseconds)
 
@@ -30,6 +30,7 @@ int count = 0;
 void setup() {
   pinMode(trigPin,OUTPUT);
   pinMode(echoPin,INPUT);
+  pinMode(led ,OUTPUT);
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
@@ -42,7 +43,7 @@ void setup() {
   while (WiFi.begin(ssid, pass) != WL_CONNECTED) {
     // failed, retry
     Serial.print(".");
-    delay(5000);
+    delay(500);
   }
 
   Serial.println("You're connected to the network");
@@ -64,10 +65,11 @@ void setup() {
 
 void loop() {
   digitalWrite(trigPin,LOW);
-  delayMicroseconds(2);
+  delay(20);
   digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
+  delay(10);
   digitalWrite(trigPin, LOW);
+  
   duration = pulseIn(echoPin, HIGH);
   distance = duration * 0.034 / 2;
   // call poll() regularly to allow the library to send MQTT keep alive which
@@ -80,17 +82,27 @@ void loop() {
     // save the last time a message was sent
     previousMillis = currentMillis;
 
-    if(distance <= 150)
+    if(distance <= 250)
     {
       Serial.print("Sending message to topic: ");
     Serial.println(topic);
-    Serial.print("Hello World: ");
+    Serial.print("Hello World! ");
     Serial.print(distance);
     Serial.println(" cm");
+    digitalWrite (led, HIGH);
+  delay(100);
+    digitalWrite (led, LOW); 
+  //delay(300);
+  digitalWrite (led, HIGH);
+  delay(100);
+    digitalWrite (led, LOW); 
+    digitalWrite (led, HIGH);
+  delay(100);
+    digitalWrite (led, LOW); 
 
     // send message, the Print interface can be used to set the message contents
     mqttClient.beginMessage(topic);
-    mqttClient.print("Hello World: ");
+    mqttClient.print("Hello World!: ");
     mqttClient.print(distance);
     mqttClient.println(" cm");
     mqttClient.endMessage();
